@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "name": "Chicken Biryani",
+    "price": 220,
+    "img": "https://www.cubesnjuliennes.com/wp-content/uploads/2020/07/Chicken-Biryani-Recipe-500x500.jpg"
+  },
+  {
+    "id": 2,
+    "name": "Mutton Biryani",
+    "price": 320,
+    "img": "https://i.ytimg.com/vi/7dLE0oraTF0/maxresdefault.jpg"
+  },
+  {
+    "id": 3,
+    "name": "Butter Chicken",
+    "price": 260,
+    "img": "https://www.indianhealthyrecipes.com/wp-content/uploads/2023/04/butter-chicken-recipe.jpg"
+  }
+]
