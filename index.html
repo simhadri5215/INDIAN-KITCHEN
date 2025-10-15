@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Indian Kitchen - Food Ordering</title>
+<style>
+:root {
+  --primary:#d32f2f;
+  --secondary:#f9a825;
+  --bg:#fff8e1;
+  --text:#2c2c2c;
+}
+body{margin:0;font-family:"Segoe UI",sans-serif;background:var(--bg);color:var(--text);}
+header{background:var(--primary);color:white;padding:1rem;text-align:center;position:sticky;top:0;z-index:1000;}
+header h1{margin:0;letter-spacing:2px;}
+header p{margin:0.3rem 0 0 0;}
+header nav{display:flex;flex-wrap:wrap;justify-content:center;margin-top:0.5rem;}
+nav a{color:white;margin:0 0.75rem;text-decoration:none;font-weight:bold;}
+.offer-bar{background:var(--secondary);color:black;padding:0.5rem;overflow:hidden;white-space:nowrap;}
+.offer-bar marquee{font-weight:bold;font-size:1rem;}
+.container{width:92%;max-width:1100px;margin:auto;padding:1rem 0;}
+h2{color:var(--primary);margin-top:2rem;}
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;margin-top:1rem;}
+.card{background:white;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.1);overflow:hidden;display:flex;flex-direction:column;transition:transform 0.2s;}
+.card:hover{transform:scale(1.02);}
+.card img{width:100%;height:160px;object-fit:cover;}
+.card-body{padding:1rem;flex:1;}
+.price{font-weight:bold;margin-bottom:0.5rem;color:var(--primary);}
+button{background:var(--primary);border:none;color:white;padding:0.5rem 0.8rem;border-radius:6px;cursor:pointer;}
+button:hover{background:#b71c1c;}
+section{background:white;margin-top:2rem;padding:1rem;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+.order-list{list-style:none;padding:0;}
+.order-list li{border:1px solid #eee;padding:1rem;margin-bottom:1rem;border-radius:8px;background:#fcfcfc;}
+footer{background:var(--primary);color:white;text-align:center;padding:1rem;margin-top:2rem;}
+.discount{color:green;font-weight:bold;}
+input,textarea{width:100%;padding:0.5rem;margin:0.5rem 0;border-radius:6px;border:1px solid #ccc;box-sizing:border-box;}
+
+/* --- Responsive Media Queries --- */
+@media screen and (max-width: 768px) {
+  header h1 { font-size: 1.5rem; }
+  header p { font-size: 0.9rem; }
+  nav a { margin: 0 0.5rem; font-size: 0.9rem; display: block; margin-bottom: 0.5rem; }
+  .menu-grid { grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:0.5rem; }
+  .card img { height: 140px; }
+  button { padding: 0.4rem 0.6rem; font-size: 0.9rem; }
+}
+
+@media screen and (max-width: 480px) {
+  header h1 { font-size: 1.2rem; }
+  header p { font-size: 0.8rem; }
+  .menu-grid { grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap:0.3rem; }
+  .card img { height: 120px; }
+  button { padding: 0.3rem 0.5rem; font-size: 0.8rem; }
+  .offer-bar marquee { font-size: 0.8rem; }
+}
+</style>
+</head>
+<body>
+<div class="offer-bar"><marquee>🎉 Special Offers → ₹500+ get ₹100 OFF | ₹1000+ get ₹250 OFF | ₹2000+ get ₹400 OFF 🎉</marquee></div>
+<header>
+  <h1>INDIAN KITCHEN</h1>
+  <p>Authentic Indian Cuisine at Your Fingertips</p>
+  <nav>
+    <a href="#home">Home</a>
+    <a href="#menu">Menu</a>
+    <a href="#cart">Cart</a>
+    <a href="#account" style="display:none;" id="nav-account-link">Account</a>
+    <a href="#history" style="display:none;" id="nav-history-link">Order History</a>
+    <a href="#login" id="nav-login-link">Login/Register</a>
+    <a href="#" onclick="logout()" style="display:none;" id="nav-logout-link">Logout</a>
+    <a href="#owner-panel" style="display:none;" id="nav-owner-link">Owner Panel</a>
+  </nav>
+</header>
+
+<main class="container">
+
+<!-- LOGIN -->
+<section id="login">
+<h2>Customer Login</h2>
+<form class="auth-form" onsubmit="loginUser(event)">
+  <input type="email" id="login-email" placeholder="Email" required>
+  <input type="password" id="login-password" placeholder="Password" required>
+  <button type="submit">Login</button>
+</form>
+<p style="text-align:center;">New user? <a href="#registration">Register here</a></p>
+</section>
+
+<!-- REGISTRATION -->
+<section id="registration" style="display:none;">
+<h2>Customer Registration</h2>
+<form class="auth-form" onsubmit="registerUser(event)">
+  <input type="text" id="reg-name" placeholder="Name" required>
+  <input type="email" id="reg-email" placeholder="Email" required>
+  <input type="password" id="reg-password" placeholder="Password (min 6 chars)" required minlength="6">
+  <button type="submit">Register</button>
+</form>
+</section>
+
+<!-- HOME -->
+<section id="home" style="display:none;">
+<h2>Welcome, <span id="user-welcome-name">Guest</span>!</h2>
+<p>Explore our delicious Indian menu and enjoy the authentic taste from the comfort of your home.</p>
+</section>
+
+<!-- MENU -->
+<section id="menu" style="display:none;">
+<h2>Our Menu</h2>
+<div class="menu-grid" id="menu-list"></div>
+</section>
+
+<!-- CART -->
+<section id="cart" style="display:none;">
+<h2>Your Cart</h2>
+<div id="cart-items"></div>
+<p><strong>Subtotal:</strong> ₹<span id="subtotal">0</span></p>
+<p class="discount" id="discount-msg"></p>
+<p><strong>Total:</strong> ₹<span id="total">0</span></p>
+<button onclick="proceedToPayment()">Proceed to Payment</button>
+</section>
+
+<!-- PAYMENT -->
+<section id="payment" style="display:none;">
+<h2>Payment Options</h2>
+<p>Your order will be delivered to: <strong><span id="delivery-address-summary"></span></strong></p>
+<form onsubmit="confirmPayment(event)">
+  <label><input type="radio" name="payment" value="Paytm" required> Paytm</label>
+  <label><input type="radio" name="payment" value="PhonePe"> PhonePe</label>
+  <label><input type="radio" name="payment" value="Google Pay"> Google Pay</label>
+  <button type="submit">Confirm & Pay</button>
+</form>
+</section>
+
+<!-- ACCOUNT -->
+<section id="account" style="display:none;">
+<h2>My Account & Address</h2>
+<p><strong>Email:</strong> <span id="account-email"></span></p>
+<form id="address-form" onsubmit="updateAddress(event)">
+  <input type="text" id="input-flat" placeholder="Flat/House No." required>
+  <input type="text" id="input-street" placeholder="Street/Locality" required>
+  <input type="text" id="input-city" placeholder="City/Town" required>
+  <textarea id="input-notes" placeholder="Notes" rows="2"></textarea>
+  <button type="submit">Save Address</button>
+</form>
+</section>
+
+<!-- ORDER HISTORY -->
+<section id="history" style="display:none;">
+<h2>My Order History</h2>
+<ul id="history-list" class="order-list"></ul>
+</section>
+
+<!-- OWNER PANEL -->
+<section id="owner-panel" style="display:none;">
+<h2>Owner Panel</h2>
+
+<h3>Add Menu Item</h3>
+<form onsubmit="ownerAddMenuItem(event)">
+  <input type="text" id="owner-item-name" placeholder="Item Name" required>
+  <input type="number" id="owner-item-price" placeholder="Price" required>
+  <input type="text" id="owner-item-img" placeholder="Image URL">
+  <button type="submit">Add Item</button>
+</form>
+
+<h3>Current Menu</h3>
+<div class="menu-grid" id="owner-menu-list"></div>
+
+<h3>Pending Orders</h3>
+<ul id="pending-orders" class="order-list"></ul>
+</section>
+
+</main>
+
+<footer>
+<p>&copy; <span id="year"></span> Indian Kitchen | Authentic Indian Food</p>
+</footer>
+
+<script>
+/* --- Globals --- */
+let menuItems = [];
+let cart=[], mockOrders=[], mockCustomers=[];
+let loggedInCustomer=null, isOwnerLoggedIn=false;
+const OWNER_EMAIL='simhadri5215@gmail.com', OWNER_PASSWORD='nbkr@123';
+
+/* --- Fetch initial menu from server --- */
+async function fetchMenu() {
+  try {
+    const res = await fetch('/menu');
+    menuItems = await res.json();
+    renderMenu();
+    renderOwnerMenu();
+  } catch(e){ console.log(e);}
+}
+
+/* --- Utility & UI --- */
+function switchView(hash){
+  const ids=['login','registration','home','menu','cart','payment','account','owner-panel','history'];
+  ids.forEach(id=>document.getElementById(id).style.display='none');
+  const view=hash.substring(1)||'home';
+  const el=document.getElementById(view);
+  if(!el) return;
+  if(['cart','payment','account','history'].includes(view)&&!loggedInCustomer){
+    alert('Login required');window.location.hash='#login';return;
+  }
+  if(view==='owner-panel'&&!isOwnerLoggedIn){alert('Owner only');window.location.hash='#login';return;}
+  el.style.display='block';
+  if(view==='menu') renderMenu();
+  if(view==='history') renderOrderHistory();
+  if(view==='payment') updatePaymentViewAddress();
+  if(view==='home') document.getElementById('user-welcome-name').textContent=loggedInCustomer?loggedInCustomer.name:'Guest';
+}
+
+/* --- Auth --- */
+function registerUser(e){
+  e.preventDefault();
+  const name=document.getElementById('reg-name').value;
+  const email=document.getElementById('reg-email').value;
+  const password=document.getElementById('reg-password').value;
+  if(mockCustomers.find(c=>c.email===email)){alert('Email exists');return;}
+  mockCustomers.push({id:Date.now(),name,email,password,orders:[],address:null});
+  alert('Registration successful! Please login.');
+  window.location.hash='#login';
+}
+
+function loginUser(e){
+  e.preventDefault();
+  const email=document.getElementById('login-email').value;
+  const password=document.getElementById('login-password').value;
+  if(email===OWNER_EMAIL && password===OWNER_PASSWORD){
+    isOwnerLoggedIn=true;loggedInCustomer=null;updateNav();window.location.hash='#owner-panel';fetchMenu();fetchOrders();return;
+  }
+  const user=mockCustomers.find(u=>u.email===email && u.password===password);
+  if(!user){alert('Invalid credentials');return;}
+  loggedInCustomer=user;isOwnerLoggedIn=false;updateNav();window.location.hash='#menu';
+}
+
+function logout(){
+  loggedInCustomer=null;isOwnerLoggedIn=false;updateNav();
+  window.location.hash='#login';
+}
+
+function updateNav(){
+  document.getElementById('nav-login-link').style.display=loggedInCustomer||isOwnerLoggedIn?'none':'inline';
+  document.getElementById('nav-logout-link').style.display=loggedInCustomer||isOwnerLoggedIn?'inline':'none';
+  document.getElementById('nav-account-link').style.display=loggedInCustomer?'inline':'none';
+  document.getElementById('nav-owner-link').style.display=isOwnerLoggedIn?'inline':'none';
+  document.getElementById('nav-history-link').style.display=loggedInCustomer?'inline':'none';
+}
+
+/* --- Address --- */
+function updateAddress(e){
+  e.preventDefault();
+  if(!loggedInCustomer) return;
+  const flat=document.getElementById('input-flat').value;
+  const street=document.getElementById('input-street').value;
+  const city=document.getElementById('input-city').value;
+  const notes=document.getElementById('input-notes').value;
+  loggedInCustomer.address={flat,street,city,notes};
+  alert('Address saved!');
+}
+
+/* --- Menu & Cart --- */
+function renderMenu(){
+  const list=document.getElementById('menu-list');list.innerHTML='';
+  menuItems.forEach((i,idx)=>{
+    list.innerHTML+=`<div class="card"><img src="${i.img}">
+    <div class="card-body"><h3>${i.name}</h3><p>₹${i.price}</p>
+    <button onclick="addToCart(${i.id})">Add to Cart</button></div></div>`;
+  });
+}
+
+function addToCart(id){
+  const item=menuItems.find(m=>m.id===id);
+  const ex=cart.find(c=>c.id===id);
+  if(ex) ex.qty++; else cart.push({...item,qty:1});
+  renderCart();
+}
+
+function changeQty(i,a){
+  if(a==='plus') cart[i].qty++;
+  else {cart[i].qty--; if(cart[i].qty<=0) cart.splice(i,1);}
+  renderCart();
+}
+
+function renderCart(){
+  const el=document.getElementById('cart-items');el.innerHTML='';let subtotal=0;
+  cart.forEach((c,i)=>{subtotal+=c.price*c.qty;
+    el.innerHTML+=`<div class="cart-item">${c.name} ₹${c.price} x${c.qty}
+    <div><button onclick="changeQty(${i},'minus')">-</button>
+    <button onclick="changeQty(${i},'plus')">+</button></div></div>`;
+  });
+  document.getElementById('subtotal').textContent=subtotal;
+  document.getElementById('total').textContent=subtotal;
+}
+
+function getCustomerAddressString(){ 
+  const a=loggedInCustomer?.address;
+  if(!a) return null;
+  return `${a.flat}, ${a.street}, ${a.city}` + (a.notes?` (${a.notes})`:'');
+}
+
+/* --- Payment & Orders --- */
+function proceedToPayment(){
+  if(!loggedInCustomer){alert('Login first');window.location.hash='#login';return;}
+  if(cart.length===0){alert('Cart empty');return;}
+  if(!loggedInCustomer.address){alert('Add address first');window.location.hash='#account';return;}
+  window.location.hash='#payment';
+}
+
+function updatePaymentViewAddress(){
+  document.getElementById('delivery-address-summary').textContent=getCustomerAddressString()||'No address';
+}
+
+function confirmPayment(e){
+  e.preventDefault();
+  const pay=document.querySelector('input[name="payment"]:checked').value;
+  const total=parseInt(document.getElementById('total').textContent);
+  const addr=getCustomerAddressString();
+  const order={id:Date.now(),items:[...cart],total,payment:pay,address:addr,status:'Pending',time:new Date().toLocaleString()};
+  loggedInCustomer.orders=loggedInCustomer.orders||[];
+  loggedInCustomer.orders.push(order);
+  mockOrders.push(order);
+  alert('✅ Order placed successfully!');
+  cart=[];renderCart();window.location.hash='#history';
+  if(isOwnerLoggedIn) renderOwnerOrders();
+}
+
+/* --- Order History --- */
+function renderOrderHistory(){
+  const ul=document.getElementById('history-list');ul.innerHTML='';
+  const orders=loggedInCustomer?.orders||[];
+  if(orders.length===0){ul.innerHTML='<li>No orders yet.</li>';return;}
+  orders.forEach(o=>{
+    const items=o.items.map(i=>`${i.name} x${i.qty}`).join(', ');
+    ul.innerHTML+=`<li><strong>Order #${o.id}</strong><br>
+    Date: ${o.time}<br>Total: ₹${o.total}<br>Payment: ${o.payment}<br>
+    Items: ${items}<br>Address: ${o.address}<br>Status: ${o.status}</li>`;
+  });
+}
+
+/* --- Owner Panel --- */
+function ownerAddMenuItem(e){
+  e.preventDefault();
+  const name=document.getElementById('owner-item-name').value;
+  const price=parseInt(document.getElementById('owner-item-price').value);
+  const img=document.getElementById('owner-item-img').value||'https://via.placeholder.com/150';
+  const id=Date.now();
+  menuItems.push({id,name,price,img});
+  alert('Item added!');
+  renderOwnerMenu();
+  renderMenu();
+  e.target.reset();
+}
+
+function renderOwnerMenu(){
+  const list=document.getElementById('owner-menu-list');list.innerHTML='';
+  menuItems.forEach((i,idx)=>{
+    list.innerHTML+=`<div class="card"><img src="${i.img}">
+    <div class="card-body"><h3>${i.name}</h3><p>₹${i.price}</p>
+    <button onclick="ownerRemoveItem(${i.id})">Remove</button></div></div>`;
+  });
+}
+
+function ownerRemoveItem(id){
+  menuItems=menuItems.filter(i=>i.id!==id);
+  renderOwnerMenu();
+  renderMenu();
+}
+
+/* --- Orders --- */
+function fetchOrders(){
+  renderOwnerOrders();
+}
+
+function renderOwnerOrders(){
+  const ul=document.getElementById('pending-orders');ul.innerHTML='';
+  mockOrders.forEach(o=>{
+    if(o.status==='Pending'){
+      const items=o.items.map(i=>`${i.name} x${i.qty}`).join(', ');
+      ul.innerHTML+=`<li>
+      <strong>Order #${o.id}</strong><br>Date: ${o.time}<br>Total: ₹${o.total}<br>
+      Items: ${items}<br>Address: ${o.address}<br>
+      <button onclick="markOrderDelivered(${o.id})">Mark as Delivered</button>
+      </li>`;
+    }
+  });
+}
+
+function markOrderDelivered(id){
+  const order=mockOrders.find(o=>o.id===id);
+  if(order) order.status='Completed';
+  renderOwnerOrders();
+}
+
+/* --- Events --- */
+window.addEventListener('hashchange',()=>switchView(window.location.hash));
+document.getElementById('year').textContent=new Date().getFullYear();
+switchView(window.location.hash||'#login');
+fetchMenu();
+</script>
+</body>
+</html>
